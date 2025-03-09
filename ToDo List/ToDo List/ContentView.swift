@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @AppStorage("ToggleTheme") private var ToggleTheme: String = "black"
-    @AppStorage("isVisibleForm") private var isVisibleForm: Bool = false
+    @State private var isVisibleForm: Bool = false
     @State var ArrayNote: [String] = []
     @AppStorage("noteText") var noteText: String = ""
     @State var blackOrWhiteBorder: Color = .white
@@ -10,6 +10,8 @@ struct ContentView: View {
     @AppStorage("isVisibleFormDelete") private var isVisibleFormDelete: Bool = false
     @State private var noteExpanded: [String: Bool] = [:]
     @State private var noteDeleteVisible: [String: Bool] = [:]
+    @State private var noteImprotant: [String: Bool] = [:]
+    @State private var textSearch: String = ""
     
     @AppStorage("savedArray") private var savedArray: String = ""
 
@@ -126,6 +128,9 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 5)
                 
+                
+                
+                
                 Button("Добавить заметку") {
                     isVisibleForm.toggle()
                 }
@@ -138,10 +143,22 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 30)
                 
+                if ArrayNote != [] {
+                    TextField("", text: $textSearch, prompt: Text("Поиск заметок").foregroundColor(textColor.opacity(0.5)))
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                }
+                
                 Text("Список заметок")
                     .font(.title)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fontWeight(.bold)
+                
+                
+
                 
                 ScrollView {
                     if ArrayNote.isEmpty {
@@ -156,89 +173,91 @@ struct ContentView: View {
                             )
                     } else {
                         ForEach(ArrayNote, id: \.self) { note in
-                            VStack {
-                                HStack {
-                                    Text(note)
-                                        .font(.headline)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .lineLimit(1)
-                                    
+                            if textSearch.isEmpty || note.localizedCaseInsensitiveContains(textSearch) {
+                                VStack {
                                     HStack {
-                                        Button {
-                                            withAnimation {
-                                                noteExpanded[note] = !(noteExpanded[note] ?? false)
-                                                noteDeleteVisible[note] = false
-                                            }
-                                        } label: {
-                                            Image(systemName: (noteExpanded[note] ?? false) ? "eye.fill" : "eye")
-                                        }
-                                        Button {
-                                            withAnimation {
-                                                noteExpanded[note] = false
-                                                noteDeleteVisible[note] = true
-                                            }
-                                        } label: {
-                                            if noteDeleteVisible[note] != true {
-                                                Image(systemName: "arrow.up.trash")
-                                                    .foregroundColor(.red)
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                if noteExpanded[note] ?? false {
-                                    ScrollView {
-                                        Text("Описание: \(note)")
+                                        Text(note)
+                                            .font(.headline)
                                             .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.top, 5)
-                                    }
-                                    .frame(maxHeight: 150)
-                                }
-                                
-                                if noteDeleteVisible[note] ?? false {
-                                    Text("Вы точно хотите удалить заметку?")
-                                    HStack {
-                                        Button("Нет") {
-                                            withAnimation {
-                                                noteDeleteVisible[note] = false
+                                            .lineLimit(1)
+                                        
+                                        HStack {
+                                            Button {
+                                                withAnimation {
+                                                    noteExpanded[note] = !(noteExpanded[note] ?? false)
+                                                    noteDeleteVisible[note] = false
+                                                }
+                                            } label: {
+                                                Image(systemName: (noteExpanded[note] ?? false) ? "eye.fill" : "eye")
+                                            }
+                                            Button {
+                                                withAnimation {
+                                                    noteExpanded[note] = false
+                                                    noteDeleteVisible[note] = true
+                                                }
+                                            } label: {
+                                                if noteDeleteVisible[note] != true {
+                                                    Image(systemName: "arrow.up.trash")
+                                                        .foregroundColor(.red)
+                                                }
                                             }
                                         }
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .padding(15)
-                                        .frame(minHeight: 30)
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 20)
-                                                .stroke(textColor, lineWidth: 1)
-                                        )
-                                        Button("Да") {
-                                            withAnimation {
-                                                ArrayNote.removeAll { $0 == note }
-                                                noteExpanded.removeValue(forKey: note)
-                                                noteDeleteVisible.removeValue(forKey: note)
-                                            }
-                                        }
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .padding(15)
-                                        .frame(minHeight: 30)
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 20)
-                                                .stroke(textColor, lineWidth: 1)
-                                        )
                                     }
-                                    .frame(maxWidth: .infinity)
+                                    
+                                    if noteExpanded[note] ?? false {
+                                        ScrollView {
+                                            Text("Описание: \(note)")
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.top, 5)
+                                        }
+                                        .frame(maxHeight: 150)
+                                    }
+                                    
+                                    if noteDeleteVisible[note] ?? false {
+                                        Text("Вы точно хотите удалить заметку?")
+                                        HStack {
+                                            Button("Нет") {
+                                                withAnimation {
+                                                    noteDeleteVisible[note] = false
+                                                }
+                                            }
+                                            .font(.title)
+                                            .fontWeight(.bold)
+                                            .padding(15)
+                                            .frame(minHeight: 30)
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 20)
+                                                    .stroke(textColor, lineWidth: 1)
+                                            )
+                                            Button("Да") {
+                                                withAnimation {
+                                                    ArrayNote.removeAll { $0 == note }
+                                                    noteExpanded.removeValue(forKey: note)
+                                                    noteDeleteVisible.removeValue(forKey: note)
+                                                }
+                                            }
+                                            .font(.title)
+                                            .fontWeight(.bold)
+                                            .padding(15)
+                                            .frame(minHeight: 30)
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 20)
+                                                    .stroke(textColor, lineWidth: 1)
+                                            )
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                    }
                                 }
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(textColor, lineWidth: 1)
+                                        .fill(textColor.opacity(0.5))
+                                )
+                                .padding(3)
                             }
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(textColor, lineWidth: 1)
-                                    .fill(textColor.opacity(0.5))
-                            )
-                            .padding(3)
                         }
                     }
                 }

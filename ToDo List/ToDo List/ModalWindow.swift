@@ -64,7 +64,7 @@ struct ModalWindow: View {
                 Text("Первые несколько слов будут использоваться как название для вашей заметки")
                     .font(.caption)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .foregroundColor(.gray)
+                    .foregroundColor(textColor)
                     .padding(.bottom, 20)
 
                 Spacer()
